@@ -1,0 +1,24 @@
+{
+  "topic": "Generative AI & LLM Observability",
+  "default_repo": "genai-telemetry-logs",
+  "patterns": [
+    {
+      "name": "LLM Token Usage by Model & User",
+      "description": "Calculates prompt and completion token consumption grouped by model name and developer identity.",
+      "cql": "#repo = \"genai-telemetry-logs\" signal_type = \"trace\" | groupBy([model, user.email], function=([sum(gen_ai.usage.prompt_tokens, as=total_prompt_tokens), sum(gen_ai.usage.completion_tokens, as=total_completion_tokens), count(as=call_count)])) | total_tokens := total_prompt_tokens + total_completion_tokens | sort(field=total_tokens, order=desc)",
+      "severity": "INFO"
+    },
+    {
+      "name": "LLM Prompt Execution Latency Percentiles (P50, P90, P99)",
+      "description": "Computes latency percentiles across AI model inference requests over time.",
+      "cql": "#repo = \"genai-telemetry-logs\" signal_type = \"trace\" span_name = \"chat.completions\" | bucket(1h, field=[model], function=([percentile(duration_ms, percentiles=[50, 90, 99], as=[p50, p90, p99]), count(as=request_count)])) | sort(field=_bucket, order=desc)",
+      "severity": "INFO"
+    },
+    {
+      "name": "Rate Limit (429) & Model Overloaded Error Spikes",
+      "description": "Tracks spikes in model rate-limit exceptions and HTTP 429 / 503 error responses from upstream LLM providers.",
+      "cql": "#repo = \"genai-telemetry-logs\" status_code = /^(429|500|503)$/ | groupBy([model, status_code, status_message], function=count(as=error_count)) | sort(field=error_count, order=desc)",
+      "severity": "HIGH"
+    }
+  ]
+}

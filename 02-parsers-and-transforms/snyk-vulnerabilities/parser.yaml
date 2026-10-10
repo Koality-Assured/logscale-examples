@@ -1,0 +1,19 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: snyk-vulnerabilities
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: '{"created":"2026-06-10T14:00:00Z","event":"org.project.test","userId":"user-123","userName":"developer@example.com","content":{"projectName":"api-service","packageManager":"npm","vulnerabilitiesCount":3,"severityDistribution":{"critical":1,"high":2,"medium":0,"low":0}}}'
+script: |
+  parseJson()
+  | @timestamp := parseTimestamp(field=created)
+  | Vendor.event := event
+  | Vendor.userId := userId
+  | Vendor.userName := userName
+  | Vendor.projectName := content.projectName
+  | Vendor.packageManager := content.packageManager
+  | vuln.count.critical := parseNumber(content.severityDistribution.critical)
+  | vuln.count.high := parseNumber(content.severityDistribution.high)
+  | vuln.count.total := parseNumber(content.vulnerabilitiesCount)
+  | #type := "snyk-audit"
+tagFields: []

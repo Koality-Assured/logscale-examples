@@ -1,0 +1,24 @@
+title: Okta MFA Push Fatigue Attack
+id: 11111111-2222-3333-4444-555555555552
+status: production
+description: Detects multiple rejected or failed MFA push notifications indicative of prompt bombing.
+author: Koality Assured Detection Engineering
+date: 2026-06-10
+logsource:
+  product: okta
+  service: system_log
+detection:
+  selection:
+    Vendor.eventType: 'user.authentication.auth_via_mfa'
+    Vendor.outcome.result:
+      - 'DENY'
+      - 'FAILURE'
+  condition: selection
+  aggregation:
+    groupBy: 'Vendor.actor.alternateId'
+    threshold: 3
+    timeframe: 10m
+level: high
+tags:
+  - attack.credential_access
+  - attack.t1621

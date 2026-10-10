@@ -1,0 +1,23 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: aws-cloudtrail
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: '{"eventVersion":"1.08","userIdentity":{"type":"AssumedRole","principalId":"AROAEXAMPLE:alice.engineer@example.com","arn":"arn:aws:sts::123456789012:assumed-role/EngineeringAdmin/alice.engineer@example.com","accountId":"123456789012","sessionContext":{"sessionIssuer":{"type":"Role","userName":"EngineeringAdmin"}}},"eventTime":"2026-06-10T14:30:00Z","eventSource":"iam.amazonaws.com","eventName":"CreatePolicy","awsRegion":"us-east-1","sourceIPAddress":"198.51.100.25","userAgent":"aws-cli/2.15.0","readOnly":false,"recipientAccountId":"123456789012"}'
+script: |
+  parseJson()
+  | @timestamp := parseTimestamp(field=eventTime)
+  | Vendor.eventSource := eventSource
+  | Vendor.eventName := eventName
+  | Vendor.awsRegion := awsRegion
+  | Vendor.sourceIPAddress := sourceIPAddress
+  | Vendor.userAgent := userAgent
+  | Vendor.readOnly := readOnly
+  | Vendor.userIdentity.type := userIdentity.type
+  | Vendor.userIdentity.principalId := userIdentity.principalId
+  | Vendor.userIdentity.arn := userIdentity.arn
+  | Vendor.userIdentity.sessionIssuer := userIdentity.sessionContext.sessionIssuer.userName
+  | cloud.account.id := recipientAccountId
+  | cloud.region := awsRegion
+  | #type := "aws-cloudtrail"
+tagFields: []

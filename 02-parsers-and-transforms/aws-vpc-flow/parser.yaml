@@ -1,0 +1,26 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: aws-vpc-flow
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: "2 123456789012 eni-0a1b2c3d4e5f67890 192.168.1.50 10.0.0.5 49152 443 6 20 8400 1620000000 1620000060 ACCEPT OK"
+script: |
+  // AWS VPC Flow Logs (Version 2 default format)
+  // Fields: version account-id interface-id srcaddr dstaddr srcport dstport protocol packets bytes start end action log-status
+  parseCsv(
+    columns: [
+      "version", "account_id", "interface_id", "srcaddr", "dstaddr",
+      "srcport", "dstport", "protocol", "packets", "bytes",
+      "start", "end", "action", "log_status"
+    ],
+    separator: " "
+  )
+  | @timestamp := parseTimestamp(field=start, format="seconds")
+  | packets := parseNumber(packets)
+  | bytes := parseNumber(bytes)
+  | srcport := parseNumber(srcport)
+  | dstport := parseNumber(dstport)
+  | #action := action
+  | #type := "aws-vpc-flow"
+tagFields:
+  - "#action"

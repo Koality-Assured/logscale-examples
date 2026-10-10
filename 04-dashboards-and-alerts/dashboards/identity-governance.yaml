@@ -1,0 +1,81 @@
+$schema: https://schemas.humio.com/dashboard/v0.23.0
+name: Identity & Access Governance
+timeSelector: {}
+sharedTimeInterval:
+  enabled: true
+  isLive: false
+  start: 24h
+widgets:
+  note-header:
+    x: 0
+    y: 0
+    width: 12
+    height: 2
+    title: Okta & Cloud IAM Authentication Health
+    type: note
+    text: '<div style="background-color:#312e81; color:#ffffff; padding:12px; font-weight:bold; font-size:16px;">Identity Governance, SSO Telemetry &amp; Access Controls</div>'
+
+  widget-kpi-active-users:
+    x: 0
+    y: 2
+    width: 4
+    height: 3
+    title: Unique Authenticated Users
+    type: query
+    visualization: single-value
+    queryString: '#repo = "okta-audit-logs" Vendor.outcome.result = "SUCCESS" | count(Vendor.actor.alternateId, distinct=true)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-mfa-challenges:
+    x: 4
+    y: 2
+    width: 4
+    height: 3
+    title: MFA Push Challenges
+    type: query
+    visualization: single-value
+    queryString: '#repo = "okta-audit-logs" Vendor.eventType = "user.authentication.auth_via_mfa" | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-admin-grants:
+    x: 8
+    y: 2
+    width: 4
+    height: 3
+    title: Administrative Role Grants
+    type: query
+    visualization: single-value
+    queryString: '#repo = "okta-audit-logs" Vendor.eventType = /^(group.user_membership.add|user.account.privilege.grant)$/ | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-top-sso-apps:
+    x: 0
+    y: 5
+    width: 6
+    height: 5
+    title: Top Connected SSO Applications
+    type: query
+    visualization: bar-chart
+    queryString: '#repo = "okta-audit-logs" Vendor.eventType = "user.authentication.sso" | top([Vendor.target.displayName], limit=10)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-logins-by-country:
+    x: 6
+    y: 5
+    width: 6
+    height: 5
+    title: Authentication Origins by Country
+    type: query
+    visualization: pie-chart
+    queryString: '#repo = "okta-audit-logs" Vendor.outcome.result = "SUCCESS" | top([client.geo.country_name], limit=8)'
+    start: 24h
+    end: now
+    isLive: false

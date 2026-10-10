@@ -1,0 +1,30 @@
+{
+  "topic": "Okta Identity & Authentication",
+  "default_repo": "okta-audit-logs",
+  "patterns": [
+    {
+      "name": "Okta Brute Force / Password Spray Detection",
+      "description": "Identifies single IP addresses generating more than 10 failed login attempts across multiple users within 10 minutes.",
+      "cql": "#repo = \"okta-audit-logs\" Vendor.eventType = \"user.session.start\" Vendor.outcome.result = \"FAILURE\" | groupBy([source.ip], function=([count(Vendor.actor.alternateId, distinct=true, as=targeted_accounts), count(as=failed_attempts)])) | test(targeted_accounts >= 3 OR failed_attempts >= 10) | sort(field=failed_attempts, order=desc)",
+      "severity": "HIGH"
+    },
+    {
+      "name": "MFA Push Fatigue / Denial Bursts",
+      "description": "Spots rapid sequence of MFA push challenges or user rejections indicating prompt bombing.",
+      "cql": "#repo = \"okta-audit-logs\" Vendor.eventType = \"user.authentication.auth_via_mfa\" Vendor.outcome.result = /^(DENY|FAILURE)$/ | groupBy([Vendor.actor.alternateId], function=([count(as=mfa_failures), collect([source.ip, client.geo.city_name])])) | test(mfa_failures >= 3) | sort(field=mfa_failures, order=desc)",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "Administrative Role Grant or Privilege Escalation",
+      "description": "Alerts when an administrator assigns privileged roles (Super Admin, Org Admin) to a user account.",
+      "cql": "#repo = \"okta-audit-logs\" Vendor.eventType = /^(group.user_membership.add|user.account.privilege.grant)$/ | select([@timestamp, Vendor.actor.alternateId, Vendor.target.displayName, Vendor.eventType, client.ip])",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Impossible Travel / Geo-Distance Velocity",
+      "description": "Calculates unique countries or cities authenticating the same user identity within a 1-hour window.",
+      "cql": "#repo = \"okta-audit-logs\" Vendor.outcome.result = \"SUCCESS\" | groupBy([Vendor.actor.alternateId], function=([count(client.geo.country_name, distinct=true, as=unique_countries), collect([client.geo.country_name, source.ip])])) | test(unique_countries > 1) | sort(field=unique_countries, order=desc)",
+      "severity": "MEDIUM"
+    }
+  ]
+}

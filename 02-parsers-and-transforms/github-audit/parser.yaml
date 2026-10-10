@@ -1,0 +1,17 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: github-audit
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: '{"@timestamp":1718025000000,"action":"repo.create","actor":"octocat","org":"example-corp","repo":"example-corp/new-service","visibility":"private","actor_location":{"country_code":"US"}}'
+script: |
+  parseJson()
+  | @timestamp := parseTimestamp(field="@timestamp")
+  | Vendor.action := action
+  | Vendor.actor := actor
+  | Vendor.org := org
+  | Vendor.repo := repo
+  | Vendor.visibility := visibility
+  | client.geo.country_iso_code := actor_location.country_code
+  | #type := "github-audit"
+tagFields: []

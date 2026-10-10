@@ -1,0 +1,18 @@
+title: GitHub Repository Made Public
+id: 11111111-2222-3333-4444-555555555553
+status: production
+description: Detects when a private GitHub repository is made public, potentially exposing sensitive source code.
+author: Koality Assured Detection Engineering
+date: 2026-06-10
+logsource:
+  product: github
+  service: audit_log
+detection:
+  selection:
+    Vendor.action: 'repo.access_change'
+    Vendor.visibility: 'public'
+  condition: selection
+level: critical
+tags:
+  - attack.exfiltration
+  - attack.t1567

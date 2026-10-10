@@ -1,0 +1,36 @@
+{
+  "topic": "AWS CloudTrail",
+  "default_repo": "aws-cloudtrail-logs",
+  "patterns": [
+    {
+      "name": "Root Account Console Login",
+      "description": "Detects interactive AWS root credentials logging into the AWS Management Console.",
+      "cql": "#repo = \"aws-cloudtrail-logs\" Vendor.eventName = \"ConsoleLogin\" Vendor.userIdentity.type = \"Root\" | select([@timestamp, Vendor.sourceIPAddress, Vendor.userAgent, #event.outcome])",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "Top Failed API Calls by Principal",
+      "description": "Identifies authorization errors and access denied events across AWS identities.",
+      "cql": "#repo = \"aws-cloudtrail-logs\" Vendor.errorCode = /^(AccessDenied|UnauthorizedOperation)$/ | groupBy([Vendor.userIdentity.principalId, Vendor.eventName, Vendor.eventSource], function=count(as=failure_count)) | sort(field=failure_count, order=desc)",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Security Group Open to World (0.0.0.0/0)",
+      "description": "Alerts when an ingress rule allowing traffic from 0.0.0.0/0 is added to any security group.",
+      "cql": "#repo = \"aws-cloudtrail-logs\" Vendor.eventName = \"AuthorizeSecurityGroupIngress\" Vendor.requestParameters.ipPermissions.items.ipRanges.items.cidrIp = \"0.0.0.0/0\" | select([@timestamp, Vendor.userIdentity.principalId, Vendor.requestParameters.groupId, Vendor.requestParameters.ipPermissions.items.toPort])",
+      "severity": "HIGH"
+    },
+    {
+      "name": "S3 Public Bucket Policy Modifications",
+      "description": "Detects changes or deletions of S3 bucket policies and public access blocks.",
+      "cql": "#repo = \"aws-cloudtrail-logs\" Vendor.eventName = /^(PutBucketPolicy|DeleteBucketPolicy|DeletePublicAccessBlock)$/ | select([@timestamp, Vendor.userIdentity.principalId, Vendor.requestParameters.bucketName, Vendor.eventName])",
+      "severity": "MEDIUM"
+    },
+    {
+      "name": "Human Write Activity Session Landscape",
+      "description": "Summarizes mutating actions performed by human SSO sessions vs automated service roles.",
+      "cql": "#repo = \"aws-cloudtrail-logs\" Vendor.readOnly = false #event.outcome = \"success\" | regex(\"^(Create|Put|Update|Delete|Modify|Attach|Detach|Authorize|Revoke|Run|Start|Stop|Terminate)\", field=Vendor.eventName) | groupBy([Vendor.userIdentity.type, Vendor.userIdentity.principalId, Vendor.userIdentity.sessionIssuer], function=count(as=write_count), limit=50) | sort(field=write_count, order=desc)",
+      "severity": "INFO"
+    }
+  ]
+}

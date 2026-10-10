@@ -1,0 +1,24 @@
+{
+  "topic": "Windows Security Event Logs",
+  "default_repo": "windows-event-logs",
+  "patterns": [
+    {
+      "name": "Remote Desktop Interactive Logon (Event ID 4624, LogonType 10)",
+      "description": "Surfaces successful Remote Desktop (RDP) logons including origin IP and user account.",
+      "cql": "#repo = \"windows-event-logs\" EventID = 4624 LogonType = 10 | select([@timestamp, TargetUserName, TargetDomainName, IpAddress, WorkstationName])",
+      "severity": "MEDIUM"
+    },
+    {
+      "name": "New Local User Account Created (Event ID 4720)",
+      "description": "Alerts when a new user account is created on a domain controller or workstation.",
+      "cql": "#repo = \"windows-event-logs\" EventID = 4720 | select([@timestamp, SubjectUserName, TargetUserName, ComputerName])",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Process Creation with Suspicious Command Line Arguments (Event ID 4688)",
+      "description": "Detects process execution referencing shadow copies, credential dumping, or bcdedit tampering.",
+      "cql": "#repo = \"windows-event-logs\" EventID = 4688 CommandLine = /(vssadmin.*delete.*shadows|bcdedit.*recoveryenabled.*no|wbadmin.*delete.*catalog)/i | select([@timestamp, ComputerName, SubjectUserName, NewProcessName, CommandLine])",
+      "severity": "CRITICAL"
+    }
+  ]
+}

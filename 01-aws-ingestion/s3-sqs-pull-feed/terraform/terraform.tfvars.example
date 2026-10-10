@@ -1,0 +1,6 @@
+environment              = "prod"
+aws_region               = "us-east-1"
+logscale_aws_account_id  = "426876924399"
+logscale_external_id     = "sample-external-id-from-logscale-ui"
+logscale_repository_name = "aws-vpc-flow-logs"
+logscale_parser_name     = "aws-vpc-flow"

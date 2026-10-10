@@ -1,0 +1,22 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: okta-system-log
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: '{"published":"2026-06-10T14:30:00.000Z","eventType":"user.authentication.sso","actor":{"alternateId":"alice.engineer@example.com","displayName":"Alice Engineer"},"client":{"ipAddress":"203.0.113.195","geographicalContext":{"city":"San Francisco","state":"California","country":"United States"},"userAgent":{"browser":"CHROME","os":"Mac OS X"}},"outcome":{"result":"SUCCESS"},"target":[{"displayName":"AWS Single Sign-On"}]}'
+script: |
+  parseJson()
+  | @timestamp := parseTimestamp(field=published)
+  | Vendor.actor.alternateId := actor.alternateId
+  | Vendor.actor.displayName := actor.displayName
+  | Vendor.eventType := eventType
+  | Vendor.outcome.result := outcome.result
+  | source.ip := client.ipAddress
+  | client.ip := client.ipAddress
+  | client.geo.city_name := client.geographicalContext.city
+  | client.geo.country_name := client.geographicalContext.country
+  | user_agent.name := client.userAgent.browser
+  | user_agent.os.name := client.userAgent.os
+  | Vendor.target.displayName := target[0].displayName
+  | #type := "okta-audit"
+tagFields: []

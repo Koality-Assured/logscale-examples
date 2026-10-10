@@ -1,0 +1,14 @@
+$schema: https://schemas.humio.com/scheduledsearch/v0.3.0
+name: ScheduledAlert-AWSRootActivity
+description: Alerts on any interactive root account console login or API execution in the past 5 minutes.
+queryString: '#repo = "aws-cloudtrail-logs" Vendor.userIdentity.type = "Root" | select([@timestamp, Vendor.eventName, Vendor.sourceIPAddress, Vendor.userAgent])'
+schedule: "*/5 * * * *"
+searchIntervalSeconds: 300
+timeZone: "UTC"
+queryTimestampType: "ingest-timestamp"
+triggerOnEmptyResult: false
+enabled: true
+maxWaitTimeSeconds: 0
+actionNameReferences:
+  - SecurityAlertSlackWebhook
+  - SecurityAlertPagerDutyWebhook

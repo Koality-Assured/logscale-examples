@@ -1,0 +1,14 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: generic-json
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: '{"timestamp":"2026-06-10T12:00:00.000Z","level":"INFO","service":"payment-gateway","message":"Transaction processed","transaction_id":"tx-987654"}'
+script: |
+  parseJson()
+  | @timestamp := parseTimestamp(field=timestamp)
+  | #level := level
+  | #service := service
+tagFields:
+  - "#level"
+  - "#service"

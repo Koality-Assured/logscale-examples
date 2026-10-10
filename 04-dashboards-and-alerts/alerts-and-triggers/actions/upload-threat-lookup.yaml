@@ -1,0 +1,5 @@
+$schema: https://schemas.humio.com/action/v0.10.0
+name: UpdateThreatIntelLookupFile
+type: upload-file
+fileName: "threat_intel_ips.csv"
+updateMode: Overwrite

@@ -1,0 +1,13 @@
+$schema: https://schemas.humio.com/scheduledsearch/v0.3.0
+name: ScheduledAlert-VPCMassPortScan
+description: Detects single source IPs attempting connections to 25 or more distinct ports within 15 minutes.
+queryString: '#repo = "aws-vpc-flow-logs" #action = "REJECT" | groupBy([srcaddr], function=([count(dstport, distinct=true, as=unique_ports), count(as=attempts)])) | test(unique_ports >= 25)'
+schedule: "*/15 * * * *"
+searchIntervalSeconds: 900
+timeZone: "UTC"
+queryTimestampType: "ingest-timestamp"
+triggerOnEmptyResult: false
+enabled: true
+maxWaitTimeSeconds: 0
+actionNameReferences:
+  - SecurityAlertSlackWebhook

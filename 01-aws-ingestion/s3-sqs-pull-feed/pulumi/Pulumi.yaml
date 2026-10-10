@@ -1,0 +1,6 @@
+name: logscale-s3-sqs-ingest-pipeline
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: AWS S3 to SQS LogScale pull ingestion architecture with IAM cross-account role.

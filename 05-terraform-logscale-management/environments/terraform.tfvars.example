@@ -1,0 +1,6 @@
+logscale_api_url       = "https://cloud.humio.com"
+logscale_api_token     = "your-admin-api-token-from-logscale-ui"
+environment            = "production"
+sqs_queue_url          = "https://sqs.us-east-1.amazonaws.com/123456789012/logscale-ingest-queue-prod"
+iam_role_arn           = "arn:aws:iam::123456789012:role/logscale-cross-account-ingest-role-prod"
+slack_webhook_endpoint = "https://hooks.slack.com/services/EXAMPLE/WEBHOOK/PLACEHOLDER"

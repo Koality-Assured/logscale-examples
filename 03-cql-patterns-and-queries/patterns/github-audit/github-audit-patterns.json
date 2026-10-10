@@ -1,0 +1,24 @@
+{
+  "topic": "GitHub Enterprise Audit Log",
+  "default_repo": "github-audit-logs",
+  "patterns": [
+    {
+      "name": "Repository Visibility Changed to Public",
+      "description": "Critical security alert when a private internal repository is flipped to public.",
+      "cql": "#repo = \"github-audit-logs\" Vendor.action = \"repo.access_change\" Vendor.visibility = \"public\" | select([@timestamp, Vendor.actor, Vendor.repo, client.geo.country_iso_code])",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "Organization Owner Added",
+      "description": "Alerts when a user is granted organization-level admin/owner permissions.",
+      "cql": "#repo = \"github-audit-logs\" Vendor.action = \"org.add_member\" Vendor.permission = \"admin\" | select([@timestamp, Vendor.actor, Vendor.user, Vendor.org])",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Deploy Key with Write Access Added",
+      "description": "Tracks addition of repository deploy keys configured with push/write permissions.",
+      "cql": "#repo = \"github-audit-logs\" Vendor.action = \"public_key.create\" | select([@timestamp, Vendor.actor, Vendor.repo, Vendor.key_title])",
+      "severity": "MEDIUM"
+    }
+  ]
+}

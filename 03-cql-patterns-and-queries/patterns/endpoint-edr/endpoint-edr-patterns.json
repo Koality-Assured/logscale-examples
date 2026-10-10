@@ -1,0 +1,24 @@
+{
+  "topic": "Endpoint EDR & Process Telemetry",
+  "default_repo": "endpoint-edr-logs",
+  "patterns": [
+    {
+      "name": "Office Application Spawning Shell (Macro Execution)",
+      "description": "Detects Microsoft Office processes (WINWORD.EXE, EXCEL.EXE) spawning cmd.exe or powershell.exe.",
+      "cql": "#repo = \"endpoint-edr-logs\" ParentBaseFileName = /^(winword|excel|powerpnt)\\.exe$/i ImageFileName = /^(cmd|powershell|pwsh|wscript|cscript)\\.exe$/i | select([@timestamp, ComputerName, UserName, ParentBaseFileName, ImageFileName, CommandLine])",
+      "severity": "CRITICAL"
+    },
+    {
+      "name": "LOLBin Network Download (Certutil / BITSAdmin)",
+      "description": "Detects living-off-the-land binaries executing command lines containing HTTP/HTTPS download flags.",
+      "cql": "#repo = \"endpoint-edr-logs\" ImageFileName = /^(certutil|bitsadmin)\\.exe$/i CommandLine = /(-urlcache|-split|transfer)/i | select([@timestamp, ComputerName, UserName, CommandLine])",
+      "severity": "HIGH"
+    },
+    {
+      "name": "PowerShell Encoded Command Execution",
+      "description": "Spots PowerShell sessions executing base64-encoded command parameters (-enc, -encodedcommand).",
+      "cql": "#repo = \"endpoint-edr-logs\" ImageFileName = /^(powershell|pwsh)\\.exe$/i CommandLine = /(-e|-enc|-encodedcommand)\\s+[A-Za-z0-9+/=]{20,}/i | select([@timestamp, ComputerName, UserName, CommandLine])",
+      "severity": "HIGH"
+    }
+  ]
+}

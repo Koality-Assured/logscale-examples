@@ -1,0 +1,107 @@
+$schema: https://schemas.humio.com/dashboard/v0.23.0
+name: Security Operations Center (24h Overview)
+timeSelector: {}
+sharedTimeInterval:
+  enabled: true
+  isLive: false
+  start: 24h
+widgets:
+  note-header:
+    x: 0
+    y: 0
+    width: 12
+    height: 2
+    title: SOC Operations Command Center
+    type: note
+    text: '<div style="background-color:#1e293b; color:#ffffff; padding:12px; font-weight:bold; font-size:16px;">Enterprise SOC Overview &amp; Live Threat Surface (Past 24 Hours)</div>'
+
+  widget-kpi-root-logins:
+    x: 0
+    y: 2
+    width: 3
+    height: 3
+    title: AWS Root Account Logins
+    type: query
+    visualization: single-value
+    queryString: '#repo = "aws-cloudtrail-logs" Vendor.eventName = "ConsoleLogin" Vendor.userIdentity.type = "Root" | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-failed-logins:
+    x: 3
+    y: 2
+    width: 3
+    height: 3
+    title: Okta Authentication Failures
+    type: query
+    visualization: single-value
+    queryString: '#repo = "okta-audit-logs" Vendor.outcome.result = "FAILURE" | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-rejected-flows:
+    x: 6
+    y: 2
+    width: 3
+    height: 3
+    title: Firewall Rejected Connections
+    type: query
+    visualization: single-value
+    queryString: '#repo = "aws-vpc-flow-logs" #action = "REJECT" | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-critical-vulns:
+    x: 9
+    y: 2
+    width: 3
+    height: 3
+    title: Critical Snyk Vulnerabilities
+    type: query
+    visualization: single-value
+    queryString: '#repo = "snyk-security-logs" | sum(vuln.count.critical)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-auth-timeline:
+    x: 0
+    y: 5
+    width: 8
+    height: 5
+    title: Okta Authentication Outcomes Over Time
+    type: query
+    visualization: time-chart
+    queryString: '#repo = "okta-audit-logs" | timeChart(Vendor.outcome.result, span=1h)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-auth-breakdown:
+    x: 8
+    y: 5
+    width: 4
+    height: 5
+    title: Top Authentication Failure Reasons
+    type: query
+    visualization: pie-chart
+    queryString: '#repo = "okta-audit-logs" Vendor.outcome.result = "FAILURE" | top([Vendor.outcome.reason], limit=10)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-cloudtrail-mutations:
+    x: 0
+    y: 10
+    width: 12
+    height: 5
+    title: Recent AWS Administrative Mutations
+    type: query
+    visualization: table-view
+    queryString: '#repo = "aws-cloudtrail-logs" Vendor.readOnly = false #event.outcome = "success" | regex("^(Create|Delete|Attach|Detach|Authorize|Revoke)", field=Vendor.eventName) | select([@timestamp, Vendor.userIdentity.principalId, Vendor.eventName, Vendor.eventSource, cloud.account.id, cloud.region]) | head(50)'
+    start: 24h
+    end: now
+    isLive: false

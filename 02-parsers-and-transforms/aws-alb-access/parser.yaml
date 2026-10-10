@@ -1,0 +1,16 @@
+$schema: https://schemas.humio.com/parser/v0.3.0
+name: aws-alb-access
+fieldsToBeRemovedBeforeParsing: []
+testCases:
+  - event:
+      rawString: 'https 2026-06-09T14:05:11.992318Z app/example-alb-production/50dc6c495c0c9188 192.168.131.39:2817 10.0.0.1:80 0.000 0.001 0.000 200 200 34 366 "GET https://www.example.com:443/api/v1/health HTTP/1.1" "Mozilla/5.0" ECDHE-RSA-AES128-GCM-SHA256 TLSv1.2 arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-targets/73e2d6bc24d8a067 "Root=1-58337281-1d84f3d73c47ec4e58577259" "www.example.com" "arn:aws:acm:us-east-1:123456789012:certificate/abc" 0 2026-06-09T14:05:11.900000Z "authenticate,forward" "-" "-" "10.0.0.1:80" "200" "-" "-" TID_abc'
+script: |
+  // AWS ALB access log line — space-delimited with quoted sub-fields.
+  // Anchored at start only (no end anchor) so AWS's newer trailing fields
+  // (target:port_list, classification, conn_trace_id, ...) do not break the match.
+  // client/target captured as whole ip:port tokens (avoids IPv6 colon ambiguity);
+  // split at query time if needed.
+  /^(?<type>\S+) (?<time>\S+) (?<elb>\S+) (?<client>\S+) (?<target>\S+) (?<request_processing_time>\S+) (?<target_processing_time>\S+) (?<response_processing_time>\S+) (?<elb_status_code>\S+) (?<target_status_code>\S+) (?<received_bytes>\S+) (?<sent_bytes>\S+) "(?<request>[^"]*)" "(?<user_agent>[^"]*)" (?<ssl_cipher>\S+) (?<ssl_protocol>\S+) (?<target_group_arn>\S+) "(?<trace_id>[^"]*)" "(?<domain_name>[^"]*)" "(?<chosen_cert_arn>[^"]*)" (?<matched_rule_priority>\S+) (?<request_creation_time>\S+) "(?<actions_executed>[^"]*)" "(?<redirect_url>[^"]*)" "(?<error_reason>[^"]*)"/
+  | @timestamp := parseTimestamp(field=time)
+  | #type := "aws-alb-access"
+tagFields: []

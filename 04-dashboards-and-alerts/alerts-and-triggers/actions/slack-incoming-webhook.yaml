@@ -1,0 +1,11 @@
+$schema: https://schemas.humio.com/action/v0.10.0
+name: SecurityAlertSlackWebhook
+type: webhook
+endpoint: "https://hooks.slack.com/services/EXAMPLE/WEBHOOK/PLACEHOLDER"
+method: POST
+headers:
+  Content-Type: application/json
+body: |
+  {
+    "text": "*LogScale Security Alert: {alert_name}*\n*Repository:* `{repo_name}`\n*Time:* {triggered_timestamp}\n*Matching Events:* {event_count}\n*Description:* {description}\n<{url}|View in LogScale>"
+  }

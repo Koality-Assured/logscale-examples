@@ -1,0 +1,22 @@
+$schema: https://schemas.humio.com/action/v0.10.0
+name: SecurityAlertPagerDutyWebhook
+type: webhook
+endpoint: "https://events.pagerduty.com/v2/enqueue"
+method: POST
+headers:
+  Content-Type: application/json
+body: |
+  {
+    "routing_key": "YOUR_PAGERDUTY_INTEGRATION_KEY_PLACEHOLDER",
+    "event_action": "trigger",
+    "payload": {
+      "summary": "LogScale Security Alert: {alert_name}",
+      "source": "LogScale-{repo_name}",
+      "severity": "critical",
+      "custom_details": {
+        "event_count": "{event_count}",
+        "triggered_at": "{triggered_timestamp}",
+        "url": "{url}"
+      }
+    }
+  }

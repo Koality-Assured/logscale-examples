@@ -1,0 +1,81 @@
+$schema: https://schemas.humio.com/dashboard/v0.23.0
+name: AWS Traffic & Infrastructure Health
+timeSelector: {}
+sharedTimeInterval:
+  enabled: true
+  isLive: false
+  start: 24h
+widgets:
+  note-header:
+    x: 0
+    y: 0
+    width: 12
+    height: 2
+    title: Infrastructure Network Traffic & Load Balancer Telemetry
+    type: note
+    text: '<div style="background-color:#0f172a; color:#38bdf8; padding:12px; font-weight:bold; font-size:16px;">AWS Edge, Network &amp; Ingress Monitoring</div>'
+
+  widget-kpi-total-bytes:
+    x: 0
+    y: 2
+    width: 4
+    height: 3
+    title: Total Bandwidth (GB)
+    type: query
+    visualization: single-value
+    queryString: '#repo = "aws-vpc-flow-logs" | sum(bytes, as=total_bytes) | total_gb := total_bytes / 1073741824 | select([total_gb])'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-alb-5xx:
+    x: 4
+    y: 2
+    width: 4
+    height: 3
+    title: ALB 5XX Server Errors
+    type: query
+    visualization: single-value
+    queryString: '#repo = "aws-alb-access-logs" elb_status_code = /^5/ | count()'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-kpi-alb-latency:
+    x: 8
+    y: 2
+    width: 4
+    height: 3
+    title: ALB Target Latency P95 (sec)
+    type: query
+    visualization: single-value
+    queryString: '#repo = "aws-alb-access-logs" | percentile(target_processing_time, percentiles=[95], as=p95_latency)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-traffic-by-action:
+    x: 0
+    y: 5
+    width: 6
+    height: 5
+    title: VPC Flow Traffic Volume (Accept vs Reject)
+    type: query
+    visualization: time-chart
+    queryString: '#repo = "aws-vpc-flow-logs" | timeChart(#action, span=30m)'
+    start: 24h
+    end: now
+    isLive: false
+
+  widget-alb-status-codes:
+    x: 6
+    y: 5
+    width: 6
+    height: 5
+    title: ALB Response Status Code Distribution
+    type: query
+    visualization: pie-chart
+    queryString: '#repo = "aws-alb-access-logs" | top([elb_status_code], limit=8)'
+    start: 24h
+    end: now
+    isLive: false

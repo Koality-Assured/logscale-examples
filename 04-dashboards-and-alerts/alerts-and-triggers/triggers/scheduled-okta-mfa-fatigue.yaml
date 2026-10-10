@@ -1,0 +1,13 @@
+$schema: https://schemas.humio.com/scheduledsearch/v0.3.0
+name: ScheduledAlert-OktaMFAFatigue
+description: Detects 3 or more denied MFA push notifications for a user within a 10-minute window.
+queryString: '#repo = "okta-audit-logs" Vendor.eventType = "user.authentication.auth_via_mfa" Vendor.outcome.result = /^(DENY|FAILURE)$/ | groupBy([Vendor.actor.alternateId], function=([count(as=mfa_failures), collect([source.ip])])) | test(mfa_failures >= 3)'
+schedule: "*/10 * * * *"
+searchIntervalSeconds: 600
+timeZone: "UTC"
+queryTimestampType: "ingest-timestamp"
+triggerOnEmptyResult: false
+enabled: true
+maxWaitTimeSeconds: 0
+actionNameReferences:
+  - SecurityAlertSlackWebhook

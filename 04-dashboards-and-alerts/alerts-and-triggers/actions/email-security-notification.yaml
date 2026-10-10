@@ -1,0 +1,20 @@
+$schema: https://schemas.humio.com/action/v0.10.0
+name: SecurityAlertEmailNotification
+type: email
+recipients:
+  - "security-alerts@example.com"
+subject: "[ALERT] LogScale Security Notification: {alert_name}"
+bodyTemplate: |
+  LogScale Alert Notification
+  ===========================
+  Alert: {alert_name}
+  Repository: {repo_name}
+  Timestamp: {triggered_timestamp}
+  Events Count: {event_count}
+
+  Summary Details:
+  {description}
+
+  View query results in LogScale:
+  {url}
+attachCsvOption: true

@@ -1,0 +1,6 @@
+name: logscale-api-pollers-infra
+runtime:
+  name: python
+  options:
+    virtualenv: venv
+description: Pulumi infrastructure for deploying serverless API log pollers and EventBridge schedules into LogScale.

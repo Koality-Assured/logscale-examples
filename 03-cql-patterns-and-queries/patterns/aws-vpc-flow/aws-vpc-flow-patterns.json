@@ -1,0 +1,24 @@
+{
+  "topic": "AWS VPC Flow Logs",
+  "default_repo": "aws-vpc-flow-logs",
+  "patterns": [
+    {
+      "name": "Top Rejected External Ingress by Port",
+      "description": "Ranks target destination ports rejecting external inbound connections.",
+      "cql": "#repo = \"aws-vpc-flow-logs\" #action = \"REJECT\" | test(!cidr(field=srcaddr, subnet=\"10.0.0.0/8\")) | test(!cidr(field=srcaddr, subnet=\"172.16.0.0/12\")) | test(!cidr(field=srcaddr, subnet=\"192.168.0.0/16\")) | groupBy([dstport], function=count(as=reject_count)) | sort(field=reject_count, order=desc) | head(20)",
+      "severity": "MEDIUM"
+    },
+    {
+      "name": "Horizontal Port Scan Detection",
+      "description": "Detects single source IPs attempting connections across more than 20 unique ports within 5 minutes.",
+      "cql": "#repo = \"aws-vpc-flow-logs\" #action = \"REJECT\" | groupBy([srcaddr], function=([count(dstport, distinct=true, as=unique_ports), count(as=total_attempts)])) | test(unique_ports >= 20) | sort(field=unique_ports, order=desc)",
+      "severity": "HIGH"
+    },
+    {
+      "name": "Large Outbound Data Transfer Anomalies",
+      "description": "Spots external outbound data transfers exceeding 100 megabytes in a single flow session.",
+      "cql": "#repo = \"aws-vpc-flow-logs\" #action = \"ACCEPT\" bytes > 104857600 | test(!cidr(field=dstaddr, subnet=\"10.0.0.0/8\")) | mb_transferred := bytes / 1048576 | select([@timestamp, srcaddr, dstaddr, dstport, mb_transferred]) | sort(field=mb_transferred, order=desc)",
+      "severity": "HIGH"
+    }
+  ]
+}
