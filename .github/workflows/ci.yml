@@ -24,27 +24,40 @@ jobs:
       - name: Terraform Format
         run: terraform fmt -check -recursive 05-terraform-logscale-management/
 
-      - name: Setup Mock Provider (Unpublished)
+      - name: Checkout Provider Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: Koality-Assured/terraform-provider-logscale
+          path: provider
+          ref: master
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: 'provider/go.mod'
+
+      - name: Build Provider
+        run: |
+          cd provider
+          go build -o ../terraform-provider-logscale .
+
+      - name: Terraform Init
+        run: |
+          cd 05-terraform-logscale-management/environments
+          terraform init -backend=false
+
+      - name: Terraform Validate
         run: |
           cat << 'RC' > ~/.terraformrc
           provider_installation {
             dev_overrides {
-              "koality-assured/logscale" = "/tmp/mock-logscale-provider"
+              "koality-assured/logscale" = "${{ github.workspace }}"
             }
             direct {}
           }
           RC
-
-      - name: Terraform Init & Validate
-        run: |
           cd 05-terraform-logscale-management/environments
-          terraform init -backend=false
-          if terraform validate 2>&1 | grep -q "Failed to instantiate provider"; then
-            echo "Successfully verified syntax up to provider schema evaluation (expected failure for unpublished provider)."
-          else
-            echo "Terraform validate failed for an unexpected reason or succeeded unexpectedly."
-            exit 1
-          fi
+          terraform validate
 
   yaml-json-parse:
     name: YAML/JSON Parse Check
