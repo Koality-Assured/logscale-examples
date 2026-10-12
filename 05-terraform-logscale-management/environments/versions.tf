@@ -3,6 +3,8 @@ terraform {
 
   required_providers {
     logscale = {
+      # NOTE: This provider is currently unpublished. 
+      # See README.md for instructions on using a local development override.
       source  = "koality-assured/logscale"
       version = "~> 0.1.0"
     }

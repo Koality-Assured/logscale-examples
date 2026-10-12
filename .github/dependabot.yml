@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "terraform"
+    directory: "/05-terraform-logscale-management/environments"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "terraform"
+    directory: "/05-terraform-logscale-management/modules"
+    schedule:
+      interval: "weekly"
