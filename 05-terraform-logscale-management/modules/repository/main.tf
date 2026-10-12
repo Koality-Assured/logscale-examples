@@ -16,8 +16,8 @@ resource "logscale_repository" "repo" {
 }
 
 resource "logscale_view" "view" {
-  count       = var.create_federated_view ? 1 : 0
-  name        = "${var.repository_name}-view"
-  description = "Federated query view for ${var.repository_name}"
+  count            = var.create_federated_view ? 1 : 0
+  name             = "${var.repository_name}-view"
+  description      = "Federated query view for ${var.repository_name}"
   repository_names = concat([logscale_repository.repo.name], var.additional_view_repositories)
 }
