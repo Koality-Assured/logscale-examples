@@ -9,10 +9,10 @@ terraform {
 }
 
 resource "logscale_repository" "repo" {
-  name                   = var.repository_name
-  description            = var.description
-  retention_days         = var.retention_days
-  storage_size_limit_gb  = var.storage_size_limit_gb
+  name                  = var.repository_name
+  description           = var.description
+  retention_days        = var.retention_days
+  storage_size_limit_gb = var.storage_size_limit_gb
 }
 
 resource "logscale_view" "view" {
