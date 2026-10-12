@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Check & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive 05-terraform-logscale-management/
+
+      - name: Checkout Provider Repository
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          repository: Koality-Assured/terraform-provider-logscale
+          path: provider
+          ref: master
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: 'provider/go.mod'
+
+      - name: Build Provider into Filesystem Mirror
+        run: |
+          MIRROR_DIR="${RUNNER_TEMP}/mirror/registry.terraform.io/koality-assured/logscale/0.1.0/linux_amd64"
+          mkdir -p "$MIRROR_DIR"
+          cd provider
+          go build -o "${MIRROR_DIR}/terraform-provider-logscale_v0.1.0" .
+
+      - name: Configure Terraform Filesystem Mirror
+        run: |
+          cat << 'RC' > ~/.terraformrc
+          provider_installation {
+            filesystem_mirror {
+              path = "${{ runner.temp }}/mirror"
+            }
+          }
+          RC
+
+      - name: Terraform Init
+        run: |
+          cd 05-terraform-logscale-management/environments
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        run: |
+          cd 05-terraform-logscale-management/environments
+          terraform validate
+
+  yaml-json-parse:
+    name: YAML/JSON Parse Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      
+      - name: Set up Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: "3.x"
+          
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Parse YAML and JSON
+        run: |
+          find . -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.json" \) \
+            -not -path "*/.terraform/*" \
+            -not -path "*/.github/*" \
+            -exec python -c '
+          import sys, yaml, json
+          file = sys.argv[1]
+          try:
+              if file.endswith(".json"):
+                  with open(file) as f: json.load(f)
+              else:
+                  with open(file) as f: yaml.safe_load(f)
+              print(f"Successfully parsed {file}")
+          except Exception as e:
+              print(f"Error parsing {file}: {e}")
+              sys.exit(1)
+          ' {} \;
+
+  markdown-link-check:
+    name: Markdown Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: Markdown Link Check
+        uses: gaurav-nelson/github-action-markdown-link-check@5c5dfc0ac2e225883c0e5f03a85311ec2830d368 # v1

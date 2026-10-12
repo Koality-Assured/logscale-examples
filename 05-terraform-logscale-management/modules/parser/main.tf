@@ -12,5 +12,5 @@ resource "logscale_parser" "parser" {
   repository_name = var.repository_name
   name            = var.parser_name
   script          = file(var.script_path)
-  tag_fields      = var.tag_fields
+  fields_to_tag   = var.tag_fields
 }

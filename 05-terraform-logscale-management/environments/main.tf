@@ -32,11 +32,19 @@ module "repo_okta" {
 resource "logscale_view" "unified_view" {
   name        = "enterprise-unified-logs-view"
   description = "Central cross-repository query view for SOC and compliance"
-  repository_names = [
-    module.repo_vpc_flow.repository_name,
-    module.repo_cloudtrail.repository_name,
-    module.repo_okta.repository_name
-  ]
+
+  repository_connection {
+    repository_name = module.repo_vpc_flow.repository_name
+    filter          = "*"
+  }
+  repository_connection {
+    repository_name = module.repo_cloudtrail.repository_name
+    filter          = "*"
+  }
+  repository_connection {
+    repository_name = module.repo_okta.repository_name
+    filter          = "*"
+  }
 }
 
 # 3. S3-SQS Ingest Feed for VPC Flow Logs
@@ -58,7 +66,6 @@ module "alert_root_login" {
   alert_name        = "AWS Root Account Console Login"
   alert_description = "Critical alert fired when interactive AWS root credentials sign in"
   query_string      = "Vendor.eventName = \"ConsoleLogin\" Vendor.userIdentity.type = \"Root\" #event.outcome = \"success\""
-  action_name       = "SecurityAlertSlackWebhook"
-  webhook_endpoint  = var.slack_webhook_endpoint
-  body_template     = "{\"text\":\"*CRITICAL ALERT*: AWS Root Account Login detected in {repo_name} at {triggered_timestamp}\"}"
+  action_name       = "soc-pagerduty-webhook"
+  webhook_endpoint  = "https://events.pagerduty.com/v2/enqueue"
 }

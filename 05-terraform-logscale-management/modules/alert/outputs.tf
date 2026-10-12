@@ -5,5 +5,5 @@ output "alert_id" {
 
 output "action_id" {
   description = "Identifier of the created webhook action"
-  value       = logscale_action.webhook.id
+  value       = logscale_webhook_action.webhook.id
 }

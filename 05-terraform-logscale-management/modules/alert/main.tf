@@ -8,19 +8,22 @@ terraform {
   }
 }
 
-resource "logscale_action" "webhook" {
-  repository_name = var.repository_name
-  name            = var.action_name
-  type            = "webhook"
-  endpoint        = var.webhook_endpoint
-  body_template   = var.body_template
+resource "logscale_webhook_action" "webhook" {
+  view_name     = var.repository_name
+  name          = var.action_name
+  method        = "POST"
+  url           = var.webhook_endpoint
+  body_template = var.body_template
+  use_proxy     = false
+  ignore_ssl    = false
 }
 
 resource "logscale_filter_alert" "alert" {
-  repository_name = var.repository_name
-  name            = var.alert_name
-  description     = var.alert_description
-  query_string    = var.query_string
-  enabled         = var.enabled
-  action_ids      = [logscale_action.webhook.id]
+  view_name            = var.repository_name
+  name                 = var.alert_name
+  description          = var.alert_description
+  query_string         = var.query_string
+  enabled              = var.enabled
+  query_ownership_type = "Organization"
+  action_ids_or_names  = [logscale_webhook_action.webhook.name]
 }
