@@ -36,10 +36,22 @@ jobs:
         with:
           go-version-file: 'provider/go.mod'
 
-      - name: Build Provider
+      - name: Build Provider into Filesystem Mirror
         run: |
+          MIRROR_DIR="${RUNNER_TEMP}/mirror/registry.terraform.io/koality-assured/logscale/0.1.0/linux_amd64"
+          mkdir -p "$MIRROR_DIR"
           cd provider
-          go build -o ../terraform-provider-logscale .
+          go build -o "${MIRROR_DIR}/terraform-provider-logscale_v0.1.0" .
+
+      - name: Configure Terraform Filesystem Mirror
+        run: |
+          cat << 'RC' > ~/.terraformrc
+          provider_installation {
+            filesystem_mirror {
+              path = "${{ runner.temp }}/mirror"
+            }
+          }
+          RC
 
       - name: Terraform Init
         run: |
@@ -48,14 +60,6 @@ jobs:
 
       - name: Terraform Validate
         run: |
-          cat << 'RC' > ~/.terraformrc
-          provider_installation {
-            dev_overrides {
-              "koality-assured/logscale" = "${{ github.workspace }}"
-            }
-            direct {}
-          }
-          RC
           cd 05-terraform-logscale-management/environments
           terraform validate
 
